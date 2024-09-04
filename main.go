@@ -9,11 +9,6 @@ import (
 	"os"
 )
 
-var (
-	profile = flag.String("profile", "", "aws profile")
-	region  = flag.String("region", "", "aws region")
-)
-
 func main() {
 	Start(func(payload string) (string, error) {
 		fmt.Println("got payload", payload)
