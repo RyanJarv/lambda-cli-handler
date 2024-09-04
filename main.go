@@ -2,20 +2,32 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
 	"log"
 	"os"
 )
 
+type Input struct {
+	Payload string `json:"payload"`
+}
+
+type Output struct {
+	Body string `json:"body"`
+	Code int    `json:"code"`
+}
+
 func main() {
-	Start(func(payload string) (string, error) {
-		fmt.Println("got payload", payload)
-		return payload, nil
+	Start(func(payload Input) (Output, error) {
+		return Output{
+			Body: payload.Payload,
+			Code: 200,
+		}, nil
 	})
 }
 
-func Start(handler func(string) (string, error)) {
+func Start(handler any) {
 	if os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != "" {
 		lambda.Start(handler)
 	} else {
@@ -23,15 +35,18 @@ func Start(handler func(string) (string, error)) {
 	}
 }
 
-func CliStart(handler func(string) (string, error)) {
+func CliStart(handler any) {
+	h := lambda.NewHandlerWithOptions(handler)
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		payload := scanner.Text()
-		result, err := handler(payload)
+		invoke, err := h.Invoke(context.Background(), scanner.Bytes())
 		if err != nil {
 			log.Println("error:", err)
 		}
 
-		fmt.Fprintln(os.Stdout, result)
+		if _, err := fmt.Fprintln(os.Stdout, string(invoke)); err != nil {
+			log.Println("error:", err)
+		}
 	}
 }
