@@ -6,15 +6,14 @@ cli or lambda handler depending on the precense of the AWS_LAMBDA_FUNCTION_NAME 
 ## Cli Example
 
 ```
-% go build -o main main.go
-% ./main                  
-test
-got payload test
-test
-hello
-got payload hello
-hello
+% cat events.json | go run ./main.go
+{"body":"hello world","code":200}
+{"body":"","code":200}
 ```
+
+## Input parsing
+
+This uses the same payload parsing locally as it does in lambda, so Unmarshalling into the Input struct is handled for us.
 
 ## Lambda
 
